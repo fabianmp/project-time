@@ -130,8 +130,7 @@
                     {{ day.end?.toLocaleTimeString().substring(0, 5) }}
                   </span>
                 </div>
-                <div class="bg-gray-100 p-2">
-
+                <div class="bg-gray-100 p-2" v-if="day.projectTimes.length > 0">
                   <table class="table-auto w-full">
                     <thead>
                       <tr>
