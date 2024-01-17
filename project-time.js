@@ -156,13 +156,15 @@ const app = Vue.createApp({
           lunchStart,
           lunchEnd,
           end,
-          projectTimes: Array.from(projectTimes.entries()).map(
-            ([project, entry]) => ({
+          projectTimes: Array.from(projectTimes.entries())
+            .sort(([a, _a], [b, _b]) =>
+              a.localeCompare(b, undefined, { sensitivity: "base" })
+            )
+            .map(([project, entry]) => ({
               project,
               duration: entry.duration,
               description: entry.descriptions.filter((d) => d).join("; "),
-            })
-          ),
+            })),
         });
       }
     },
