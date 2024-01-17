@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/fontawesome.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.4.0/css/solid.min.css" />
+  <link rel="stylesheet" href="tailwind.min.css" />
+  <title>Project Time Tracker</title>
+</head>
+
+<body>
+  <div id="app">
+    <div class="container mx-auto sm:my-5 space-y-4">
+      <div class="flex flex-row space-x-5">
+        <div class="space-y-5">
+          <div class="shadow-lg rounded-lg w-80">
+            <div class="p-2 pl-5 rounded-t-lg font-bold bg-blue-800 text-white flex">
+              Projects
+            </div>
+            <template v-for="project, projectIdx in projects">
+              <div class="w-full flex flex-grow hover:bg-green-200"
+                :class="{ 'bg-green-500': project.name === currentProject }">
+                <button data-tippy-content="Start working on this project" class="grow text-left px-2 py-1"
+                  :disabled="project.name === currentProject" @click="addProjectTimestamp(project.name)">
+                  <i class="fas p-1 mr-2" :class="project.icon"></i>{{
+                  project.name }}
+                </button>
+                <button data-tippy-content="Delete project" class="w-8 text-red-500 hover:bg-red-300 rounded"
+                  v-if="!project.internal" @click="deleteProject(project.name)">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </template>
+            <input type="text" class="w-full p-1.5 mt-2 border-gray-100 border-solid border"
+              placeholder="Add new project..." @keyup.enter="addProject" data-tippy-content="Add new project" />
+          </div>
+          <button class="block m-2 p-1 pr-4 text-white rounded"
+            :class="rounded ? 'bg-green-600 hover:bg-green-400' : 'bg-gray-600 hover:bg-gray-400'"
+            @click="toggleRounded" data-tippy-content="Toggle quarterly rounded times">
+            <i class="fas w-6 p-1 mr-2" :class="rounded ? 'fa-check' : 'fa-xmark'"></i>15min resolution
+          </button>
+          <button class="block m-2 p-1 pr-4 text-white rounded bg-red-600 hover:bg-red-400" @click="deleteOldData"
+            data-tippy-content="Delete old data">
+            <i class="fas fa-trash w-6 p-1 mr-2"></i>Delete data older than 14
+            days
+          </button>
+        </div>
+
+        <div class="grow space-y-5">
+          <template v-for="day, dayIdx in calculatedDays" :key="day.date">
+            <div class="shadow-lg rounded-lg">
+              <div class="p-2 pl-5 rounded-t-lg font-bold bg-blue-500 flex">
+                <input type="date" :value="day.date" class="bg-blue-500 text-white"
+                  @input="changeDate(day.date, $event)" data-tippy-content="Change date" />
+                <div class="inline-flex flex-grow justify-end">
+                  <button class="p-1 text-white hover:bg-blue-400 rounded"
+                    @click="addProjectTimestamp(projects[0].name, day.date)" data-tippy-content="Add new time">
+                    <i class="fas fa-plus w-6 p-1 mr-2"></i>Add new
+                  </button>
+                </div>
+              </div>
+              <table class="table-auto w-full">
+                <thead>
+                  <tr>
+                    <th class="w-20">Time</th>
+                    <th class="w-20">Duration</th>
+                    <th class="w-80">Project</th>
+                    <th>Description</th>
+                    <th class="w-10"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template v-for="entry, entryIdx in day.timestamps">
+                    <tr class="hover:bg-gray-100">
+                      <td class="px-2">
+                        <input type="time" :value="entry.roundedTimestamp.toLocaleTimeString()"
+                          @keyup.enter="changeTime(entry, $event)" @blur="changeTime(entry, $event)"
+                          data-tippy-content="Change date" />
+                      </td>
+                      <td class="px-2"><span v-if="entry.duration"><i class="fas fa-hourglass-half mr-2"></i>{{
+                          entry.duration }}h</span></td>
+                      <td class="block px-2 py-1 hover:bg-gray-100 flex">
+                        <select class="w-full h-8" title="Project" @input="changeProject(entry, $event)"
+                          data-tippy-content="Change project">
+                          <template v-for="project in getProjectsForEntry(entry)">
+                            <option :selected="entry.project === project">
+                              {{ project }}
+                            </option>
+                          </template>
+                        </select>
+                      </td>
+                      <td>
+                        <input class="w-full p-1.5" type="text" placeholder="Add description..."
+                          :value="entry.description" data-tippy-content="Change description"
+                          @keyup.enter="changeDescription(entry, $event)" @blur="changeDescription(entry, $event)" />
+                      </td>
+                      <td class="text-center">
+                        <button data-tippy-content="Delete" class="w-8 p-1 text-red-500 hover:bg-red-300 rounded"
+                          @click="deleteProjectTimestamp(entry)">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+              <div class="bg-gray-100 p-2">
+                <div class="space-x-5" v-if="day.timestamps.length > 1">
+                  <span>
+                    <i class="fas fa-hourglass-half"></i>
+                    {{ (day.lunchStart && day.lunchEnd) ? getDuration(day.start, day.end) - getDuration(day.lunchStart,
+                    day.lunchEnd) : getDuration(day.start, day.end) }}h
+                  </span>
+                  <span>
+                    <i class="fas fa-briefcase"></i>
+                    {{ day.start?.toLocaleTimeString().substring(0, 5) }} - {{
+                    (day.lunchStart ??
+                    day.end)?.toLocaleTimeString().substring(0, 5) }}
+                  </span>
+                  <span v-if="day.lunchStart && day.lunchEnd">
+                    <i class="fas fa-coffee"></i>
+                    {{ day.lunchStart?.toLocaleTimeString().substring(0, 5) }}
+                    - {{ day.lunchEnd?.toLocaleTimeString().substring(0, 5) }}
+                  </span>
+                  <span v-if="day.lunchStart && day.lunchEnd">
+                    <i class="fas fa-briefcase"></i>
+                    {{ day.lunchEnd?.toLocaleTimeString().substring(0, 5) }} -
+                    {{ day.end?.toLocaleTimeString().substring(0, 5) }}
+                  </span>
+                </div>
+                <div class="bg-gray-100 p-2">
+
+                  <table class="table-auto w-full">
+                    <thead>
+                      <tr>
+                        <th class="w-64">Project</th>
+                        <th class="w-24">Duration</th>
+                        <th>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <template v-for="entry, entryIdx in day.projectTimes">
+                        <tr class="hover:bg-gray-100">
+                          <td class="block px-2 py-1 hover:bg-gray-100 flex"><b>{{ entry.project }}</b></td>
+                          <td class="px-2"><span v-if="entry.duration"><i class="fas fa-hourglass-half mr-2"></i>{{
+                              entry.duration }}h</span></td>
+                          <td>{{ entry.description }}</td>
+                        </tr>
+                      </template>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <tooltip-dummy></tooltip-dummy>
+
+  <script src="https://unpkg.com/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
+  <script src="https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js"></script>
+  <script src="https://unpkg.com/vue@3.4.14/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/idb@7.1.1/build/umd.js"></script>
+  <script src="project-time.js"></script>
+</body>
+
+</html>
