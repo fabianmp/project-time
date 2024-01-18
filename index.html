@@ -76,7 +76,7 @@
                   <template v-for="entry, entryIdx in day.timestamps">
                     <tr class="hover:bg-gray-100">
                       <td class="px-2">
-                        <input type="time" :value="entry.roundedTimestamp.toLocaleTimeString()"
+                        <input type="time" :value="entry.roundedTimestamp.toTimeString().substring(0, 5)"
                           @keyup.enter="changeTime(entry, $event)" @blur="changeTime(entry, $event)"
                           data-tippy-content="Change date" />
                       </td>
