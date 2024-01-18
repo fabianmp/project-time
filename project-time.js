@@ -127,7 +127,8 @@ const app = Vue.createApp({
             project: entry.project,
             description: entry.description,
             duration,
-            isProjectMissing: entry.project === "None" && i !== entries,
+            isProjectMissing:
+              entry.project === "None" && i !== entries.length - 1,
             isBreak: entry.project === "Break",
           })
         }
