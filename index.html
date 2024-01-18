@@ -74,17 +74,16 @@
                 </thead>
                 <tbody>
                   <template v-for="entry, entryIdx in day.timestamps">
-                    <tr class="hover:bg-gray-100"
-                      :class="{'bg-red-400 hover:bg-red-200': entry.project === 'None' && entryIdx !== day.timestamps.length - 1, 'bg-green-300 hover:bg-green-200': entry.project === 'Break'}">
+                    <tr :class="{'bg-red-400 hover:bg-red-200': entry.isProjectMissing, 'bg-green-300 hover:bg-green-200': entry.isBreak}">
                       <td class="px-2">
-                        <input type="time" :value="entry.roundedTimestamp.toTimeString().substring(0, 5)"
+                        <input type="time" :value="entry.roundedTimestamp.toTimeString().substring(0, 5)" class=" bg-inherit hover:bg-inherit"
                           @keyup.enter="changeTime(entry, $event)" @blur="changeTime(entry, $event)"
                           data-tippy-content="Change date" />
                       </td>
                       <td class="px-2"><span v-if="entry.duration"><i class="fas fa-hourglass-half mr-2"></i>{{
                           entry.duration }}h</span></td>
-                      <td class="block px-2 py-1 hover:bg-gray-100 flex">
-                        <select class="w-full h-8" title="Project" @input="changeProject(entry, $event)"
+                      <td class="block px-2 py-1 flex">
+                        <select class="w-full h-8 bg-inherit hover:bg-inherit" title="Project" @input="changeProject(entry, $event)"
                           data-tippy-content="Change project">
                           <template v-for="project in getProjectsForEntry(entry)">
                             <option :selected="entry.project === project">
@@ -94,7 +93,7 @@
                         </select>
                       </td>
                       <td>
-                        <input class="w-full p-1.5" type="text" placeholder="Add description..."
+                        <input class="w-full p-1.5 bg-inherit hover:bg-inherit" type="text" placeholder="Add description..."
                           :value="entry.description" data-tippy-content="Change description"
                           @keyup.enter="changeDescription(entry, $event)" @blur="changeDescription(entry, $event)" />
                       </td>

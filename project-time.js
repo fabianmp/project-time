@@ -131,6 +131,8 @@ const app = Vue.createApp({
             project: entry.project,
             description: entry.description,
             duration,
+            isProjectMissing: entry.project === "None" && i !== entries,
+            isBreak: entry.project === "Break",
           });
         }
         const projectTimes = new Map();
@@ -146,9 +148,7 @@ const app = Vue.createApp({
             m.descriptions.push(entry.description);
           }
         }
-        for (const i of internalProjects) {
-          projectTimes.delete(i.name);
-        }
+        const allProjectTimes = Array.from(projectTimes.entries());
         this.calculatedDays.push({
           date,
           timestamps: roundedTimestamps,
@@ -156,7 +156,11 @@ const app = Vue.createApp({
           lunchStart,
           lunchEnd,
           end,
-          projectTimes: Array.from(projectTimes.entries())
+          projectTimes: allProjectTimes
+            .filter(
+              ([project, _]) =>
+                !internalProjects.map((i) => i.name).includes(project)
+            )
             .sort(([a, _a], [b, _b]) =>
               a.localeCompare(b, undefined, { sensitivity: "base" })
             )
