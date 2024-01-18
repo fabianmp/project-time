@@ -9,7 +9,7 @@ const internalProjects = [
     icon: "fa-coffee",
     internal: true,
   },
-];
+]
 
 const app = Vue.createApp({
   data() {
@@ -19,111 +19,107 @@ const app = Vue.createApp({
       currentProject: null,
       days: new Map(),
       calculatedDays: [],
-    };
+    }
   },
   async mounted() {
     await idb.openDB("project-time", 1, {
       upgrade(db, oldVersion, newVersion, transaction, event) {
-        db.createObjectStore("data", { keyPath: "timestamp" });
+        db.createObjectStore("data", { keyPath: "timestamp" })
       },
-    });
-    this.rounded = JSON.parse(
-      window.localStorage.getItem("rounded") ?? "false"
-    );
-    this.loadProjects();
-    await this.loadData();
+    })
+    this.rounded = JSON.parse(window.localStorage.getItem("rounded") ?? "false")
+    this.loadProjects()
+    await this.loadData()
 
     tippy.createSingleton(tippy("[data-tippy-content]"), {
       appendTo: () => document.body,
       delay: [500, 0],
-    });
+    })
   },
   methods: {
     loadProjects() {
-      this.projects.splice(0, this.projects.length, ...internalProjects);
+      this.projects.splice(0, this.projects.length, ...internalProjects)
       const projects = JSON.parse(
         window.localStorage.getItem("projects") ?? "[]"
-      );
+      )
       projects.sort((a, b) =>
         a.localeCompare(b, undefined, { sensitivity: "base" })
-      );
+      )
       this.projects.splice(
         this.projects.length,
         0,
         ...projects.map((p) => ({ name: p, icon: "fa-stopwatch" }))
-      );
+      )
     },
     addProject(event) {
       const projects = JSON.parse(
         window.localStorage.getItem("projects") ?? "[]"
-      );
-      projects.push(event.target.value);
-      window.localStorage.setItem("projects", JSON.stringify(projects));
-      this.loadProjects();
-      event.target.value = "";
+      )
+      projects.push(event.target.value)
+      window.localStorage.setItem("projects", JSON.stringify(projects))
+      this.loadProjects()
+      event.target.value = ""
     },
     deleteProject(name) {
-      let projects = JSON.parse(
-        window.localStorage.getItem("projects") ?? "[]"
-      );
-      projects = projects.filter((p) => p !== name);
-      window.localStorage.setItem("projects", JSON.stringify(projects));
-      this.loadProjects();
+      let projects = JSON.parse(window.localStorage.getItem("projects") ?? "[]")
+      projects = projects.filter((p) => p !== name)
+      window.localStorage.setItem("projects", JSON.stringify(projects))
+      this.loadProjects()
     },
     getProjectsForEntry(entry) {
-      const projects = this.projects.map((p) => p.name);
+      const projects = this.projects.map((p) => p.name)
       if (!projects.includes(entry.project)) {
-        projects.push(entry.project);
+        projects.push(entry.project)
       }
-      return projects;
+      return projects
     },
     async loadData() {
-      const db = await idb.openDB("project-time");
-      const allEntries = await db.getAll("data");
-      const today = new Date().toISOString().substring(0, 10);
-      this.days.clear();
+      const db = await idb.openDB("project-time")
+      const allEntries = await db.getAll("data")
+      const today = new Date().toISOString().substring(0, 10)
+      this.days.clear()
       for (entry of allEntries) {
-        const date = entry.timestamp.toISOString().substring(0, 10);
-        const day = this.days.get(date);
+        const date = entry.timestamp.toISOString().substring(0, 10)
+        const day = this.days.get(date)
         if (!day) {
-          this.days.set(date, [entry]);
+          this.days.set(date, [entry])
         } else {
-          day.push(entry);
+          day.push(entry)
         }
       }
       if (!this.days.get(today)) {
-        this.days.set(today, []);
+        this.days.set(today, [])
       }
-      const todayTimestamps = this.days.get(today);
+      const todayTimestamps = this.days.get(today)
       this.currentProject = todayTimestamps
         ? todayTimestamps[todayTimestamps.length - 1]?.project
-        : this.projects[0].name;
-      this.calculatedDays.splice(0, this.calculatedDays.length);
+        : this.projects[0].name
+      this.calculatedDays.splice(0, this.calculatedDays.length)
       for (const date of Array.from(this.days.keys()).sort().reverse()) {
-        const entries = this.days.get(date);
-        const start = this.toQuarter(entries[0]?.timestamp);
+        const entries = this.days.get(date)
+        const start = this.toQuarter(entries[0]?.timestamp)
         const end = this.toQuarter(
           entries.length > 1 ? entries[entries.length - 1].timestamp : undefined
-        );
-        const lunchBreak = entries.findIndex((e) => e.project === "Break");
+        )
+        const lunchBreak = entries.findIndex((e) => e.project === "Break")
         const lunchStart =
           lunchBreak > 0
             ? this.toQuarter(entries[lunchBreak].timestamp)
-            : undefined;
+            : undefined
         const lunchEnd =
           lunchBreak > 0 && lunchBreak < entries.length - 1
             ? this.toQuarter(entries[lunchBreak + 1].timestamp)
-            : undefined;
-        const roundedTimestamps = [];
+            : undefined
+        const roundedTimestamps = []
         for (let i = 0; i < entries.length; ++i) {
-          const entry = entries[i];
-          let duration = undefined;
+          const entry = entries[i]
+          let duration = undefined
           if (i < entries.length - 1) {
-            const next = entries[i + 1];
+            const next = entries[i + 1]
             duration = this.getDuration(
               this.toQuarter(entry.timestamp),
               this.toQuarter(next.timestamp)
-            );
+            )
           }
           roundedTimestamps.push({
             timestamp: entry.timestamp,
@@ -133,22 +129,22 @@ const app = Vue.createApp({
             duration,
             isProjectMissing: entry.project === "None" && i !== entries,
             isBreak: entry.project === "Break",
-          });
+          })
         }
-        const projectTimes = new Map();
+        const projectTimes = new Map()
         for (const entry of roundedTimestamps) {
-          const m = projectTimes.get(entry.project);
+          const m = projectTimes.get(entry.project)
           if (!m) {
             projectTimes.set(entry.project, {
               duration: entry.duration,
               descriptions: [entry.description],
-            });
+            })
           } else {
-            m.duration += entry.duration;
-            m.descriptions.push(entry.description);
+            m.duration += entry.duration
+            m.descriptions.push(entry.description)
           }
         }
-        const allProjectTimes = Array.from(projectTimes.entries());
+        const allProjectTimes = Array.from(projectTimes.entries())
         this.calculatedDays.push({
           date,
           timestamps: roundedTimestamps,
@@ -169,118 +165,118 @@ const app = Vue.createApp({
               duration: entry.duration,
               description: entry.descriptions.filter((d) => d).join("; "),
             })),
-        });
+        })
       }
     },
     async deleteOldData() {
-      const db = await idb.openDB("project-time");
-      const allKeys = await db.getAllKeys("data");
-      const threshold = new Date();
-      threshold.setDate(threshold.getDate() - 14);
-      threshold.setHours(0);
-      threshold.setMinutes(0);
-      threshold.setSeconds(0, 0);
-      const oldKeys = allKeys.filter((d) => d < threshold);
+      const db = await idb.openDB("project-time")
+      const allKeys = await db.getAllKeys("data")
+      const threshold = new Date()
+      threshold.setDate(threshold.getDate() - 14)
+      threshold.setHours(0)
+      threshold.setMinutes(0)
+      threshold.setSeconds(0, 0)
+      const oldKeys = allKeys.filter((d) => d < threshold)
       for (const key of oldKeys) {
-        await db.delete("data", key);
+        await db.delete("data", key)
       }
-      await this.loadData();
+      await this.loadData()
     },
     async addProjectTimestamp(project, date) {
-      let timestamp = new Date();
-      timestamp.setSeconds(0, 0);
-      const day = this.days.get(date);
+      let timestamp = new Date()
+      timestamp.setSeconds(0, 0)
+      const day = this.days.get(date)
       if (day && day.length > 0) {
-        timestamp = new Date(day[day.length - 1].timestamp);
-        timestamp.setMinutes(timestamp.getMinutes() + 15);
+        timestamp = new Date(day[day.length - 1].timestamp)
+        timestamp.setMinutes(timestamp.getMinutes() + 15)
       }
-      const db = await idb.openDB("project-time");
-      await db.put("data", { timestamp: timestamp, project, description: "" });
-      await this.loadData();
+      const db = await idb.openDB("project-time")
+      await db.put("data", { timestamp: timestamp, project, description: "" })
+      await this.loadData()
     },
     async deleteProjectTimestamp(entry) {
-      const db = await idb.openDB("project-time");
-      await db.delete("data", entry.timestamp);
-      await this.loadData();
+      const db = await idb.openDB("project-time")
+      await db.delete("data", entry.timestamp)
+      await this.loadData()
     },
     async toggleRounded() {
-      this.rounded = !this.rounded;
-      window.localStorage.setItem("rounded", JSON.stringify(this.rounded));
-      await this.loadData();
+      this.rounded = !this.rounded
+      window.localStorage.setItem("rounded", JSON.stringify(this.rounded))
+      await this.loadData()
     },
     toQuarter(date) {
-      const timestamp = new Date(date);
+      const timestamp = new Date(date)
       if (this.rounded) {
-        timestamp.setMinutes(Math.round(timestamp.getMinutes() / 15) * 15);
+        timestamp.setMinutes(Math.round(timestamp.getMinutes() / 15) * 15)
       }
-      return timestamp;
+      return timestamp
     },
     getDuration(start, end) {
-      return Math.round(((end - start) / (60 * 60 * 1000)) * 100) / 100;
+      return Math.round(((end - start) / (60 * 60 * 1000)) * 100) / 100
     },
     async changeDate(date, event) {
-      const day = this.days.get(date);
-      const db = await idb.openDB("project-time");
+      const day = this.days.get(date)
+      const db = await idb.openDB("project-time")
       for (const entry of day) {
-        await db.delete("data", entry.timestamp);
-        const newDate = new Date(event.target.value);
-        newDate.setHours(entry.timestamp.getHours());
-        newDate.setMinutes(entry.timestamp.getMinutes());
+        await db.delete("data", entry.timestamp)
+        const newDate = new Date(event.target.value)
+        newDate.setHours(entry.timestamp.getHours())
+        newDate.setMinutes(entry.timestamp.getMinutes())
         await db.put("data", {
           timestamp: newDate,
           project: entry.project,
           description: entry.description,
-        });
+        })
       }
-      await this.loadData();
+      await this.loadData()
     },
     async changeTime(entry, event) {
-      const db = await idb.openDB("project-time");
-      await db.delete("data", entry.timestamp);
-      const [hours, minutes, _] = event.target.value.split(":");
-      entry.timestamp.setHours(hours);
-      entry.timestamp.setMinutes(minutes);
+      const db = await idb.openDB("project-time")
+      await db.delete("data", entry.timestamp)
+      const [hours, minutes, _] = event.target.value.split(":")
+      entry.timestamp.setHours(hours)
+      entry.timestamp.setMinutes(minutes)
       await db.put("data", {
         timestamp: entry.timestamp,
         project: entry.project,
         description: entry.description,
-      });
-      await this.loadData();
+      })
+      await this.loadData()
     },
     async changeProject(entry, event) {
-      const db = await idb.openDB("project-time");
+      const db = await idb.openDB("project-time")
       await db.put("data", {
         timestamp: entry.timestamp,
         project: event.target.value,
         description: entry.description,
-      });
-      await this.loadData();
+      })
+      await this.loadData()
     },
     async changeDescription(entry, event) {
-      const db = await idb.openDB("project-time");
+      const db = await idb.openDB("project-time")
       await db.put("data", {
         timestamp: entry.timestamp,
         project: entry.project,
         description: event.target.value,
-      });
-      await this.loadData();
+      })
+      await this.loadData()
     },
   },
-});
+})
 
 app.component("tooltip-dummy", {
   template: "<span></span>",
   mounted() {
-    this.allTooltips = tippy("[data-tippy-content]");
+    this.allTooltips = tippy("[data-tippy-content]")
     this.singletonTooltip = tippy.createSingleton(this.allTooltips, {
       appendTo: () => document.body,
       delay: [500, 0],
-    });
+    })
   },
   unmounted() {
-    this.allTooltips.forEach((t) => t.destroy());
-    this.singletonTooltip.destroy();
+    this.allTooltips.forEach((t) => t.destroy())
+    this.singletonTooltip.destroy()
   },
-});
+})
 
-const vm = app.mount("#app");
+const vm = app.mount("#app")
