@@ -280,4 +280,16 @@ app.component("tooltip-dummy", {
   },
 })
 
+app.component("copyable-text", {
+  template: "#copyable-text-template",
+  props: {
+    text: String,
+  },
+  methods: {
+    copyToClipboard() {
+      navigator.clipboard.writeText(this.text)
+    },
+  },
+})
+
 const vm = app.mount("#app")
