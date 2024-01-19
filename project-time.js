@@ -5,6 +5,11 @@ const internalProjects = [
     internal: true,
   },
   {
+    name: "Lunch",
+    icon: "fa-utensils",
+    internal: true,
+  },
+  {
     name: "Break",
     icon: "fa-coffee",
     internal: true,
@@ -99,9 +104,11 @@ const app = Vue.createApp({
         const entries = this.days.get(date)
         const start = this.toQuarter(entries[0]?.timestamp)
         const end = this.toQuarter(
-          entries.length > 1 ? entries[entries.length - 1].timestamp : undefined
+          entries.length > 1
+            ? entries[entries.length - 1].timestamp
+            : new Date()
         )
-        const lunchBreak = entries.findIndex((e) => e.project === "Break")
+        const lunchBreak = entries.findIndex((e) => e.project === "Lunch")
         const lunchStart =
           lunchBreak > 0
             ? this.toQuarter(entries[lunchBreak].timestamp)
@@ -129,7 +136,7 @@ const app = Vue.createApp({
             duration,
             isProjectMissing:
               entry.project === "None" && i !== entries.length - 1,
-            isBreak: entry.project === "Break",
+            isBreak: entry.project === "Break" || entry.project === "Lunch",
           })
         }
         const projectTimes = new Map()
@@ -145,14 +152,41 @@ const app = Vue.createApp({
             m.descriptions.push(entry.description)
           }
         }
+        const workSegments = []
+        if (lunchStart) {
+          workSegments.push({
+            start: start,
+            end: lunchStart,
+            icon: "fa-briefcase",
+          })
+          workSegments.push({
+            start: lunchStart,
+            end: lunchEnd,
+            icon: "fa-utensils",
+          })
+          workSegments.push({
+            start: lunchEnd,
+            end: end,
+            icon: "fa-briefcase",
+          })
+        } else {
+          workSegments.push({
+            start: start,
+            end: end,
+            icon: "fa-briefcase",
+          })
+        }
+        const totalTime =
+          lunchStart && lunchEnd
+            ? this.getDuration(start, end) -
+              this.getDuration(lunchStart, lunchEnd)
+            : this.getDuration(start, end)
         const allProjectTimes = Array.from(projectTimes.entries())
         this.calculatedDays.push({
           date,
           timestamps: roundedTimestamps,
-          start,
-          lunchStart,
-          lunchEnd,
-          end,
+          workSegments,
+          totalTime,
           projectTimes: allProjectTimes
             .filter(
               ([project, _]) =>

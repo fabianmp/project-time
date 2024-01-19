@@ -111,28 +111,16 @@
               </table>
               <div class="bg-gray-100 p-2">
                 <div class="space-x-5" v-if="day.timestamps.length > 1">
+                  <template v-for="segment in day.workSegments">
+                    <span>
+                      <i class="fas" :class="segment.icon"></i>
+                      <copyable-text
+                        :text="segment.start?.toTimeString().substring(0, 5)"></copyable-text>-<copyable-text
+                        :text="segment.end?.toTimeString().substring(0, 5)"></copyable-text>
+                    </span>
+                  </template>
                   <span>
-                    <i class="fas fa-briefcase mr-2"></i>
-                    <copyable-text :text="day.start?.toTimeString().substring(0, 5)"></copyable-text>
-                    -
-                    <copyable-text :text="(day.lunchStart ?? day.end)?.toTimeString().substring(0, 5)"></copyable-text>
-                  </span>
-                  <span v-if="day.lunchStart && day.lunchEnd">
-                    <i class="fas fa-coffee"></i>
-                    <copyable-text :text="day.lunchStart?.toTimeString().substring(0, 5)"></copyable-text>
-                    -
-                    <copyable-text :text="day.lunchEnd?.toTimeString().substring(0, 5)"></copyable-text>
-                  </span>
-                  <span v-if="day.lunchStart && day.lunchEnd">
-                    <i class="fas fa-briefcase"></i>
-                    <copyable-text :text="day.lunchEnd?.toTimeString().substring(0, 5)"></copyable-text>
-                    -
-                    <copyable-text :text="day.end?.toTimeString().substring(0, 5)"></copyable-text>
-                  </span>
-                  <span>
-                    <i class="fas fa-hourglass-half"></i>
-                    {{ (day.lunchStart && day.lunchEnd) ? getDuration(day.start, day.end) - getDuration(day.lunchStart,
-                    day.lunchEnd) : getDuration(day.start, day.end) }}h
+                    <i class="fas fa-hourglass-half"></i> {{ day.totalTime }}h
                   </span>
                 </div>
                 <div class="bg-gray-100 p-2" v-if="day.projectTimes.length > 0">
