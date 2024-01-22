@@ -217,6 +217,28 @@ const app = Vue.createApp({
       }
       await this.loadData()
     },
+    async downloadCsv() {
+      const data = []
+      data.push("timestamp;project;description")
+      const db = await idb.openDB("project-time")
+      const allEntries = await db.getAll("data")
+      for (const entry of allEntries) {
+        data.push(
+          `${entry.timestamp.toISOString()};"${entry.project}";"${
+            entry.description
+          }"`
+        )
+      }
+      const csvContent = encodeURI(
+        "data:text/csv;charset=utf-8," + data.join("\n")
+      )
+      var link = document.createElement("a")
+      link.setAttribute("href", csvContent)
+      link.setAttribute("download", "project-time.csv")
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    },
     async addProjectTimestamp(project, date) {
       let timestamp = new Date()
       timestamp.setSeconds(0, 0)

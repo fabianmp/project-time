@@ -42,6 +42,10 @@
             @click="toggleRounded" data-tippy-content="Toggle quarterly rounded times">
             <i class="fas w-6 p-1 mr-2" :class="rounded ? 'fa-check' : 'fa-xmark'"></i>15min resolution
           </button>
+          <button class="block m-2 p-1 pr-4 text-white rounded bg-blue-600 hover:bg-blue-400" @click="downloadCsv"
+            data-tippy-content="Download as CSV">
+            <i class="fas fa-file-arrow-down w-6 p-1 mr-2"></i>Download data as CSV
+          </button>
           <button class="block m-2 p-1 pr-4 text-white rounded bg-red-600 hover:bg-red-400" @click="deleteOldData"
             data-tippy-content="Delete old data">
             <i class="fas fa-trash w-6 p-1 mr-2"></i>Delete data older than 14
