@@ -59,6 +59,9 @@
               <div class="p-2 pl-5 rounded-t-lg font-bold bg-blue-500 flex">
                 <input type="date" :value="day.date" class="bg-blue-500 text-white"
                   @input="changeDate(day.date, $event)" data-tippy-content="Change date" />
+                <span class="text-white ml-5 py-1">
+                  <i class="fas fa-hourglass-half"></i> {{ day.totalTime }}h
+                </span>
                 <div class="inline-flex flex-grow justify-end">
                   <button class="p-1 text-white hover:bg-blue-400 rounded"
                     @click="addProjectTimestamp(projects[0].name, day.date)" data-tippy-content="Add new time">
@@ -114,7 +117,7 @@
                 </tbody>
               </table>
               <div class="bg-gray-100 p-2">
-                <div class="space-x-5" v-if="day.timestamps.length > 1">
+                <div class="space-x-5" v-if="day.timestamps.length > 0">
                   <template v-for="segment in day.workSegments">
                     <span>
                       <i class="fas" :class="segment.icon"></i>
@@ -123,9 +126,6 @@
                         :text="segment.end?.toTimeString().substring(0, 5)"></copyable-text>
                     </span>
                   </template>
-                  <span>
-                    <i class="fas fa-hourglass-half"></i> {{ day.totalTime }}h
-                  </span>
                 </div>
                 <div class="bg-gray-100 p-2" v-if="day.projectTimes.length > 0">
                   <table class="table-auto w-full">

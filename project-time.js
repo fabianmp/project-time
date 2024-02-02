@@ -79,19 +79,8 @@ const app = Vue.createApp({
       return projects
     },
     async loadData() {
-      const db = await idb.openDB("project-time")
-      const allEntries = await db.getAll("data")
+      await this.loadDaysFromDb()
       const today = new Date().toISOString().substring(0, 10)
-      this.days.clear()
-      for (entry of allEntries) {
-        const date = entry.timestamp.toISOString().substring(0, 10)
-        const day = this.days.get(date)
-        if (!day) {
-          this.days.set(date, [entry])
-        } else {
-          day.push(entry)
-        }
-      }
       if (!this.days.get(today)) {
         this.days.set(today, [])
       }
@@ -99,48 +88,29 @@ const app = Vue.createApp({
       this.currentProject = todayTimestamps
         ? todayTimestamps[todayTimestamps.length - 1]?.project
         : this.projects[0].name
+
       this.calculatedDays.splice(0, this.calculatedDays.length)
       for (const date of Array.from(this.days.keys()).sort().reverse()) {
-        const entries = this.days.get(date)
-        const start = this.toQuarter(entries[0]?.timestamp)
-        const end = this.toQuarter(
-          entries.length > 1
-            ? entries[entries.length - 1].timestamp
-            : new Date()
-        )
-        const lunchBreak = entries.findIndex((e) => e.project === "Lunch")
-        const lunchStart =
-          lunchBreak > 0
-            ? this.toQuarter(entries[lunchBreak].timestamp)
-            : undefined
-        const lunchEnd =
-          lunchBreak > 0 && lunchBreak < entries.length - 1
-            ? this.toQuarter(entries[lunchBreak + 1].timestamp)
-            : undefined
+        const dayEntries = this.days.get(date)
         const roundedTimestamps = []
-        for (let i = 0; i < entries.length; ++i) {
-          const entry = entries[i]
-          let duration = undefined
-          if (i < entries.length - 1) {
-            const next = entries[i + 1]
-            duration = this.getDuration(
-              this.toQuarter(entry.timestamp),
-              this.toQuarter(next.timestamp)
-            )
-          }
+        for (const [i, entry] of dayEntries.entries()) {
           roundedTimestamps.push({
             timestamp: entry.timestamp,
             roundedTimestamp: this.toQuarter(entry.timestamp),
             project: entry.project,
             description: entry.description,
-            duration,
+            duration: this.getDuration(
+              this.toQuarter(entry.timestamp),
+              this.toQuarter(dayEntries[i + 1]?.timestamp ?? entry.timestamp)
+            ),
+            isBreak: this.isBreak(entry),
             isProjectMissing:
-              entry.project === "None" && i !== entries.length - 1,
-            isBreak: entry.project === "Break" || entry.project === "Lunch",
+              entry.project === "None" && i !== dayEntries.length - 1,
           })
         }
+        const workSegments = []
         const projectTimes = new Map()
-        for (const entry of roundedTimestamps) {
+        for (const [i, entry] of roundedTimestamps.entries()) {
           const m = projectTimes.get(entry.project)
           if (!m) {
             projectTimes.set(entry.project, {
@@ -151,42 +121,46 @@ const app = Vue.createApp({
             m.duration += entry.duration
             m.descriptions.push(entry.description)
           }
+          if (workSegments.length === 0) {
+            workSegments.push({
+              start: entry.roundedTimestamp,
+              end: undefined,
+              break: this.isBreak(entry),
+              icon: this.getIcon(entry),
+            })
+          } else {
+            const segment = workSegments[workSegments.length - 1]
+            if (
+              segment.break !== this.isBreak(entry) ||
+              (segment.break &&
+                entry.project !== roundedTimestamps[i - 1].project)
+            ) {
+              segment.end = entry.roundedTimestamp
+              workSegments.push({
+                start: entry.roundedTimestamp,
+                end: undefined,
+                break: this.isBreak(entry),
+                icon: this.getIcon(entry),
+              })
+            } else if (
+              entry.project === "None" &&
+              i === roundedTimestamps.length - 1
+            ) {
+              const segment = workSegments[workSegments.length - 1]
+              segment.end = entry.roundedTimestamp
+            }
+          }
         }
-        const workSegments = []
-        if (lunchStart) {
-          workSegments.push({
-            start: start,
-            end: lunchStart,
-            icon: "fa-briefcase",
-          })
-          workSegments.push({
-            start: lunchStart,
-            end: lunchEnd,
-            icon: "fa-utensils",
-          })
-          workSegments.push({
-            start: lunchEnd,
-            end: end,
-            icon: "fa-briefcase",
-          })
-        } else {
-          workSegments.push({
-            start: start,
-            end: end,
-            icon: "fa-briefcase",
-          })
-        }
-        const totalTime =
-          lunchStart && lunchEnd
-            ? this.getDuration(start, end) -
-              this.getDuration(lunchStart, lunchEnd)
-            : this.getDuration(start, end)
         const allProjectTimes = Array.from(projectTimes.entries())
         this.calculatedDays.push({
           date,
           timestamps: roundedTimestamps,
           workSegments,
-          totalTime,
+          totalTime: roundedTimestamps
+            .filter((e) => !this.isBreak(e))
+            .reduce((s, e) => {
+              return s + e.duration
+            }, 0),
           projectTimes: allProjectTimes
             .filter(
               ([project, _]) =>
@@ -201,6 +175,20 @@ const app = Vue.createApp({
               description: entry.descriptions.filter((d) => d).join("; "),
             })),
         })
+      }
+    },
+    async loadDaysFromDb() {
+      const db = await idb.openDB("project-time")
+      const allEntries = await db.getAll("data")
+      this.days.clear()
+      for (entry of allEntries) {
+        const date = entry.timestamp.toISOString().substring(0, 10)
+        const day = this.days.get(date)
+        if (!day) {
+          this.days.set(date, [entry])
+        } else {
+          day.push(entry)
+        }
       }
     },
     async deleteOldData() {
@@ -260,6 +248,21 @@ const app = Vue.createApp({
       this.rounded = !this.rounded
       window.localStorage.setItem("rounded", JSON.stringify(this.rounded))
       await this.loadData()
+    },
+    isBreak(entry) {
+      return entry.project === "Lunch" || entry.project === "Break"
+    },
+    getIcon(entry) {
+      switch (entry.project) {
+        case "Break":
+          return "fa-coffee"
+        case "Lunch":
+          return "fa-utensils"
+        case "None":
+          return "fa-stop"
+        default:
+          return "fa-briefcase"
+      }
     },
     toQuarter(date) {
       const timestamp = new Date(date)
