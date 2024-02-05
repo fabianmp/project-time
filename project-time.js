@@ -24,6 +24,8 @@ const app = Vue.createApp({
       currentProject: null,
       days: new Map(),
       calculatedDays: [],
+      weekTotalTime: 0,
+      weekProjectTimes: [],
     }
   },
   async mounted() {
@@ -176,6 +178,33 @@ const app = Vue.createApp({
             })),
         })
       }
+      const startOfWeek = new Date()
+      startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1)
+      const fromDate = startOfWeek.toISOString().substring(0, 10)
+      const daysThisWeek = this.calculatedDays.filter((d) => d.date >= fromDate)
+      this.weekTotalTime = daysThisWeek.reduce((s, d) => (s += d.totalTime), 0)
+      const weekProjectTimes = new Map()
+      for (const d of daysThisWeek) {
+        for (const project of d.projectTimes) {
+          const m = weekProjectTimes.get(project.project)
+          if (!m) {
+            weekProjectTimes.set(project.project, project.duration)
+          } else {
+            weekProjectTimes.set(project.project, m + project.duration)
+          }
+        }
+      }
+      const weekProjectTimesSorted = Array.from(weekProjectTimes.entries())
+        .map(([name, duration]) => ({
+          name,
+          duration,
+        }))
+        .sort((p1, p2) => (p1.name < p2.name ? -1 : 1))
+      this.weekProjectTimes.splice(
+        0,
+        this.weekProjectTimes.length,
+        ...weekProjectTimesSorted
+      )
     },
     async loadDaysFromDb() {
       const db = await idb.openDB("project-time")

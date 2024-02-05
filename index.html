@@ -34,8 +34,24 @@
                 </button>
               </div>
             </template>
-            <input type="text" class="w-full p-1.5 mt-2 border-gray-100 border-solid border"
+            <input type="text" class="w-full p-1.5 mt-2 border-gray-100 border-solid border-t"
               placeholder="Add new project..." @keyup.enter="addProject" data-tippy-content="Add new project" />
+            <div class="rounded-b-lg h-2"></div>
+          </div>
+          <div class="shadow-lg rounded-lg w-80">
+            <div class="p-2 pl-5 rounded-t-lg font-bold bg-gray-600 text-white flex">
+              This Week
+              <span class="text-white ml-5">
+                <i class="fas fa-hourglass-half"></i> {{ weekTotalTime }}h
+              </span>
+            </div>
+            <template v-for="project, projectIdx in weekProjectTimes">
+              <div class="flex p-2">
+                <i class="fas fa-briefcase mr-2 py-1"></i> {{ project.name }}
+                <span class="flex-grow inline-flex justify-end">{{ project.duration }}h</span>
+              </div>
+            </template>
+            <div class="rounded-b-lg h-2"></div>
           </div>
           <button class="block m-2 p-1 pr-4 text-white rounded"
             :class="rounded ? 'bg-green-600 hover:bg-green-400' : 'bg-gray-600 hover:bg-gray-400'"
