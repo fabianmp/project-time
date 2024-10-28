@@ -242,7 +242,7 @@ const app = Vue.createApp({
       for (const entry of allEntries) {
         data.push(
           `${entry.timestamp.toISOString()};"${entry.project}";"${
-            entry.description
+            encodeURIComponent(entry.description)
           }"`
         )
       }
