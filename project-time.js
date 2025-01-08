@@ -241,9 +241,9 @@ const app = Vue.createApp({
       const allEntries = await db.getAll("data")
       for (const entry of allEntries) {
         data.push(
-          `${entry.timestamp.toISOString()};"${entry.project}";"${
-            encodeURIComponent(entry.description)
-          }"`
+          `${entry.timestamp.toISOString()};"${
+            entry.project
+          }";"${encodeURIComponent(entry.description)}"`
         )
       }
       const csvContent = encodeURI(
