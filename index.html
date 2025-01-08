@@ -7,11 +7,18 @@
   <link rel="icon" href="favicon.ico" type="image/vnd.microsoft.icon">
   <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.7.2/css/fontawesome.min.css">
   <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.7.2/css/solid.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/@fortawesome/fontawesome-free@6.7.2/css/brands.min.css">
   <link rel="stylesheet" href="tailwind.min.css" />
   <title>Project Time Tracker</title>
 </head>
 
 <body>
+  <div class="absolute top-0 right-0 w-80 h-64 overflow-x-hidden">
+    <a href="https://github.com/fabianmp/project-time" target="_blank"
+      class="absolute -right-28 top-5 block w-80 bg-gray-700 text-white p-2 text-center rounded shadow-md transform rotate-45">
+      <i class="fas fa-brands fa-github w-6 p-1 mr-2"></i><br />View on GitHub
+    </a>
+  </div>
   <div id="app">
     <div class="container mx-auto sm:my-5 space-y-4">
       <div class="flex flex-row space-x-5">
@@ -53,17 +60,17 @@
             </template>
             <div class="rounded-b-lg h-2"></div>
           </div>
-          <button class="block m-2 p-1 pr-4 text-white rounded"
+          <button class="block m-2 p-2 pr-4 text-white rounded shadow-md"
             :class="rounded ? 'bg-green-600 hover:bg-green-400' : 'bg-gray-600 hover:bg-gray-400'"
             @click="toggleRounded" data-tippy-content="Toggle quarterly rounded times">
             <i class="fas w-6 p-1 mr-2" :class="rounded ? 'fa-check' : 'fa-xmark'"></i>15min resolution
           </button>
-          <button class="block m-2 p-1 pr-4 text-white rounded bg-blue-600 hover:bg-blue-400" @click="downloadCsv"
-            data-tippy-content="Download as CSV">
+          <button class="block m-2 p-2 pr-4 text-white rounded shadow-md bg-blue-600 hover:bg-blue-400"
+            @click="downloadCsv" data-tippy-content="Download as CSV">
             <i class="fas fa-file-arrow-down w-6 p-1 mr-2"></i>Download data as CSV
           </button>
-          <button class="block m-2 p-1 pr-4 text-white rounded bg-red-600 hover:bg-red-400" @click="deleteOldData"
-            data-tippy-content="Delete old data">
+          <button class="block m-2 p-2 pr-4 text-white rounded shadow-md bg-red-600 hover:bg-red-400"
+            @click="deleteOldData" data-tippy-content="Delete old data">
             <i class="fas fa-trash w-6 p-1 mr-2"></i>Delete data older than 14
             days
           </button>
