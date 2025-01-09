@@ -26,6 +26,7 @@ const app = Vue.createApp({
       calculatedDays: [],
       weekTotalTime: 0,
       weekProjectTimes: [],
+      recommendedTimestamps: [],
     }
   },
   async mounted() {
@@ -209,6 +210,30 @@ const app = Vue.createApp({
     async loadDaysFromDb() {
       const db = await idb.openDB("project-time")
       const allEntries = await db.getAll("data")
+
+      const topTimestamps = allEntries
+        .map((t) => this.toQuarter(t.timestamp).toTimeString().substring(0, 8))
+        .reduce((map, element) => {
+          if (map.has(element)) {
+            map.set(element, map.get(element) + 1)
+          } else {
+            map.set(element, 1)
+          }
+          return map
+        }, new Map())
+        .entries()
+        .toArray()
+        .sort((x, y) => y[1] - x[1])
+        .slice(0, 10)
+        .map((x) => x[0])
+        .sort()
+
+      this.recommendedTimestamps.splice(
+        0,
+        this.recommendedTimestamps.length,
+        ...topTimestamps
+      )
+
       this.days.clear()
       for (entry of allEntries) {
         const date = entry.timestamp.toISOString().substring(0, 10)

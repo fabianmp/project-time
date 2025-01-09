@@ -20,6 +20,11 @@
     </a>
   </div>
   <div id="app">
+    <datalist id="recommended-timestamps">
+      <template v-for="timestamp in recommendedTimestamps">
+        <option :value="timestamp"></option>
+      </template>
+    </datalist>
     <div class="container mx-auto sm:my-5 space-y-4">
       <div class="flex flex-row space-x-5">
         <div class="space-y-5">
@@ -107,7 +112,8 @@
                     <tr
                       :class="{'bg-red-400 hover:bg-red-200': entry.isProjectMissing, 'bg-green-300 hover:bg-green-200': entry.isBreak}">
                       <td class="px-2">
-                        <input type="time" :value="entry.roundedTimestamp.toTimeString().substring(0, 5)"
+                        <input type="time" list="recommended-timestamps"
+                          :value="entry.roundedTimestamp.toTimeString().substring(0, 5)"
                           class=" bg-inherit hover:bg-inherit" @keyup.enter="changeTime(entry, $event)"
                           @blur="changeTime(entry, $event)" data-tippy-content="Change date" />
                       </td>
