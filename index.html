@@ -65,11 +65,21 @@
             </template>
             <div class="rounded-b-lg h-2"></div>
           </div>
-          <button class="block m-2 p-2 pr-4 text-white rounded shadow-md"
-            :class="rounded ? 'bg-green-600 hover:bg-green-400' : 'bg-gray-600 hover:bg-gray-400'"
-            @click="toggleRounded" data-tippy-content="Toggle quarterly rounded times">
-            <i class="fas w-6 p-1 mr-2" :class="rounded ? 'fa-check' : 'fa-xmark'"></i>15min resolution
-          </button>
+          <div class="shadow-lg rounded-lg w-80">
+            <div class="p-2 pl-5 rounded-t-lg font-bold bg-green-600 text-white flex">
+              <span class="text-white">
+                <i class="fas fa-cog mr-2"></i>Options
+              </span>
+            </div>
+            <div class="w-full flex flex-grow hover:bg-gray-200">
+              <button data-tippy-content="Toggle quarterly rounded times" class="grow text-left px-2 py-1"
+                @click="toggleRounded">
+                <i class="fas p-1 w-8" :class="rounded ? 'fa-check text-green-500' : 'fa-xmark text-red-500'"></i>
+                15min resolution
+              </button>
+            </div>
+            <div class="rounded-b-lg h-2"></div>
+          </div>
           <button class="block m-2 p-2 pr-4 text-white rounded shadow-md bg-blue-600 hover:bg-blue-400"
             @click="downloadCsv" data-tippy-content="Download as CSV">
             <i class="fas fa-file-arrow-down w-6 p-1 mr-2"></i>Download data as CSV
