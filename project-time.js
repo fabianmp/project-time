@@ -26,6 +26,7 @@ const app = Vue.createApp({
       calculatedDays: [],
       weekTotalTime: 0,
       weekProjectTimes: [],
+      showRecommendedTimestamps: false,
       recommendedTimestamps: [],
     }
   },
@@ -36,6 +37,7 @@ const app = Vue.createApp({
       },
     })
     this.rounded = JSON.parse(window.localStorage.getItem("rounded") ?? "false")
+    this.showRecommendedTimestamps = JSON.parse(window.localStorage.getItem("showRecommendedTimestamps") ?? "false")
     this.loadProjects()
     await this.loadData()
 
@@ -303,6 +305,10 @@ const app = Vue.createApp({
       this.rounded = !this.rounded
       window.localStorage.setItem("rounded", JSON.stringify(this.rounded))
       await this.loadData()
+    },
+    toggleRecommended() {
+      this.showRecommendedTimestamps = !this.showRecommendedTimestamps
+      window.localStorage.setItem("showRecommendedTimestamps", JSON.stringify(this.showRecommendedTimestamps))
     },
     isBreak(entry) {
       return entry.project === "Lunch" || entry.project === "Break"
