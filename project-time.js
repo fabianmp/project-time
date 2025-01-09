@@ -26,6 +26,7 @@ const app = Vue.createApp({
       calculatedDays: [],
       weekTotalTime: 0,
       weekProjectTimes: [],
+      onlyShowCurrentWeek: false,
       showRecommendedTimestamps: false,
       recommendedTimestamps: [],
     }
@@ -38,6 +39,7 @@ const app = Vue.createApp({
     })
     this.rounded = JSON.parse(window.localStorage.getItem("rounded") ?? "false")
     this.showRecommendedTimestamps = JSON.parse(window.localStorage.getItem("showRecommendedTimestamps") ?? "false")
+    this.onlyShowCurrentWeek = JSON.parse(window.localStorage.getItem("onlyShowCurrentWeek") ?? "false")
     this.loadProjects()
     await this.loadData()
 
@@ -211,7 +213,7 @@ const app = Vue.createApp({
     },
     async loadDaysFromDb() {
       const db = await idb.openDB("project-time")
-      const allEntries = await db.getAll("data")
+      let allEntries = await db.getAll("data")
 
       const topTimestamps = allEntries
         .map((t) => this.toQuarter(t.timestamp).toTimeString().substring(0, 8))
@@ -235,6 +237,15 @@ const app = Vue.createApp({
         this.recommendedTimestamps.length,
         ...topTimestamps
       )
+
+      if (this.onlyShowCurrentWeek) {
+        const startOfWeek = new Date()
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1)
+        startOfWeek.setHours(0)
+        startOfWeek.setMinutes(0)
+        startOfWeek.setSeconds(0, 0)
+        allEntries = allEntries.filter((t) => t.timestamp > startOfWeek)
+      }
 
       this.days.clear()
       for (entry of allEntries) {
@@ -306,9 +317,15 @@ const app = Vue.createApp({
       window.localStorage.setItem("rounded", JSON.stringify(this.rounded))
       await this.loadData()
     },
-    toggleRecommended() {
+    async toggleRecommended() {
       this.showRecommendedTimestamps = !this.showRecommendedTimestamps
       window.localStorage.setItem("showRecommendedTimestamps", JSON.stringify(this.showRecommendedTimestamps))
+      await this.loadData()
+    },
+    async toggleOnlyShowCurrentWeek() {
+      this.onlyShowCurrentWeek = !this.onlyShowCurrentWeek
+      window.localStorage.setItem("onlyShowCurrentWeek", JSON.stringify(this.onlyShowCurrentWeek))
+      await this.loadData()
     },
     isBreak(entry) {
       return entry.project === "Lunch" || entry.project === "Break"
