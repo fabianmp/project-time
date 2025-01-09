@@ -263,6 +263,7 @@ const app = Vue.createApp({
       if (day && day.length > 0) {
         timestamp = new Date(day[day.length - 1].timestamp)
         timestamp.setMinutes(timestamp.getMinutes() + 15)
+        timestamp.setSeconds(0, 0)
       }
       const db = await idb.openDB("project-time")
       await db.put("data", { timestamp: timestamp, project, description: "" })
@@ -298,6 +299,7 @@ const app = Vue.createApp({
       if (this.rounded) {
         timestamp.setMinutes(Math.round(timestamp.getMinutes() / 15) * 15)
       }
+      timestamp.setSeconds(0, 0)
       return timestamp
     },
     getDuration(start, end) {
@@ -311,6 +313,7 @@ const app = Vue.createApp({
         const newDate = new Date(event.target.value)
         newDate.setHours(entry.timestamp.getHours())
         newDate.setMinutes(entry.timestamp.getMinutes())
+        newDate.setSeconds(0, 0)
         await db.put("data", {
           timestamp: newDate,
           project: entry.project,
@@ -325,6 +328,7 @@ const app = Vue.createApp({
       const [hours, minutes, _] = event.target.value.split(":")
       entry.timestamp.setHours(hours)
       entry.timestamp.setMinutes(minutes)
+      entry.timestamp.setSeconds(0, 0)
       await db.put("data", {
         timestamp: entry.timestamp,
         project: entry.project,
