@@ -91,11 +91,6 @@ const app = Vue.createApp({
       return projects
     },
 
-    addTicketId(event) {
-        this.ticketID = event.target.value
-        console.log("Hello world!"+ this.ticketID)
-    },
-
     async loadData() {
       await this.loadDaysFromDb()
       const today = new Date().toISOString().substring(0, 10)
@@ -310,6 +305,9 @@ const app = Vue.createApp({
     },
 
     async timePerTicket() {
+      let ticketID = document.getElementById('tpTId').value;
+      let to_date = document.getElementById('tpTto').value;
+      let from_date = document.getElementById('tpTfrom').value;
       const data = []
       await this.loadDaysFromDb();
       data.push("ticket;time;")
@@ -335,11 +333,31 @@ const app = Vue.createApp({
           let ticket_time = this.getDuration(first_timestamp, second_timestamp);
           i++;
           if (re_array === null) {
+            // skip if we couldn't match
             continue
           }
           const ticket_id = re_array[1]
           const work_mode = re_array[2]
           const description = re_array[3]
+          if (ticketID && ticketID != ticket_id) {
+              // ticket specified differs, skip
+              continue
+          }
+          // check if between the specified times if to_date and from_date are given
+          if (! from_date ) {
+            from_date = new Date(1970,1,1);
+          } else {
+            from_date = new Date(from_date);
+          }
+          if (! to_date ) {
+            to_date = new Date();
+          } else {
+            to_date = new Date(to_date);
+          }
+          let ticket_date = new Date(first_timestamp);
+          if (ticket_date < from_date || ticket_date > to_date) {
+              continue
+          }
           let cur_time = time_per_ticket.get(ticket_id)
           if (! cur_time ) {
               time_per_ticket.set(ticket_id, ticket_time);
