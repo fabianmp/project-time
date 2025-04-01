@@ -31,6 +31,7 @@ const app = Vue.createApp({
       recommendedTimestamps: [],
     }
   },
+
   async mounted() {
     await idb.openDB("project-time", 1, {
       upgrade(db, oldVersion, newVersion, transaction, event) {
@@ -48,6 +49,7 @@ const app = Vue.createApp({
       delay: [500, 0],
     })
   },
+
   methods: {
     loadProjects() {
       this.projects.splice(0, this.projects.length, ...internalProjects)
@@ -63,6 +65,7 @@ const app = Vue.createApp({
         ...projects.map((p) => ({ name: p, icon: "fa-stopwatch" }))
       )
     },
+
     addProject(event) {
       const projects = JSON.parse(
         window.localStorage.getItem("projects") ?? "[]"
@@ -72,12 +75,14 @@ const app = Vue.createApp({
       this.loadProjects()
       event.target.value = ""
     },
+
     deleteProject(name) {
       let projects = JSON.parse(window.localStorage.getItem("projects") ?? "[]")
       projects = projects.filter((p) => p !== name)
       window.localStorage.setItem("projects", JSON.stringify(projects))
       this.loadProjects()
     },
+
     getProjectsForEntry(entry) {
       const projects = this.projects.map((p) => p.name)
       if (!projects.includes(entry.project)) {
@@ -85,6 +90,7 @@ const app = Vue.createApp({
       }
       return projects
     },
+
     async loadData() {
       await this.loadDaysFromDb()
       const today = new Date().toISOString().substring(0, 10)
@@ -211,6 +217,7 @@ const app = Vue.createApp({
         ...weekProjectTimesSorted
       )
     },
+
     async loadDaysFromDb() {
       const db = await idb.openDB("project-time")
       let allEntries = await db.getAll("data")
@@ -258,6 +265,7 @@ const app = Vue.createApp({
         }
       }
     },
+
     async deleteOldData() {
       const db = await idb.openDB("project-time")
       const allKeys = await db.getAllKeys("data")
@@ -272,6 +280,7 @@ const app = Vue.createApp({
       }
       await this.loadData()
     },
+
     async downloadCsv() {
       const data = []
       data.push("timestamp;project;description")
@@ -290,6 +299,81 @@ const app = Vue.createApp({
       var link = document.createElement("a")
       link.setAttribute("href", csvContent)
       link.setAttribute("download", "project-time.csv")
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    },
+
+    async timePerTicket() {
+      let ticketID = document.getElementById('tpTId').value;
+      let to_date = document.getElementById('tpTto').value;
+      let from_date = document.getElementById('tpTfrom').value;
+      const data = []
+      await this.loadDaysFromDb();
+      data.push("ticket;time;")
+      const db = await idb.openDB("project-time");
+      const allEntries = await db.getAll("data");
+      /* To be able to get the time per Ticket-ID, time entries in the description
+       * have to be entered as:
+       * <Ticket-ID>: <W> <description>
+       * where:
+       *   - <Ticket-ID> consists of alphanumeric characters and a dash, followed by a colon
+       *   - <W> describing the workmode after the colon as a singular character (e.g. D for development,
+       *     I for integration, W for waste of time ;-)) to support further analysis of e.g. context switches
+       *     or time needed for integration
+       *   - <descriptions> is a description of what was done on the ticket (matches the rest of the line)
+       */
+      const re = /([\w-]*): (\w) (.*)/;
+      const time_per_ticket = new Map();
+      let i = 0;
+      for (const entry of allEntries.slice(0,-1)) {
+          let first_timestamp = allEntries[i].timestamp;
+          let second_timestamp = allEntries[i+1].timestamp;
+          let re_array = re.exec(entry.description)
+          let ticket_time = this.getDuration(first_timestamp, second_timestamp);
+          i++;
+          if (re_array === null) {
+            // skip if we couldn't match
+            continue
+          }
+          const ticket_id = re_array[1]
+          const work_mode = re_array[2]
+          const description = re_array[3]
+          if (ticketID && ticketID != ticket_id) {
+              // ticket specified differs, skip
+              continue
+          }
+          // check if between the specified times if to_date and from_date are given
+          if (! from_date ) {
+            from_date = new Date(1970,1,1);
+          } else {
+            from_date = new Date(from_date);
+          }
+          if (! to_date ) {
+            to_date = new Date();
+          } else {
+            to_date = new Date(to_date);
+          }
+          let ticket_date = new Date(first_timestamp);
+          if (ticket_date < from_date || ticket_date > to_date) {
+              continue
+          }
+          let cur_time = time_per_ticket.get(ticket_id)
+          if (! cur_time ) {
+              time_per_ticket.set(ticket_id, ticket_time);
+          } else {
+              time_per_ticket.set(ticket_id, cur_time + ticket_time);
+          }
+      }
+      for (let [key, value] of time_per_ticket) {
+        data.push(`${key};${value}`);
+      }
+      const csvContent = encodeURI(
+        "data:text/csv;charset=utf-8," + data.join("\n")
+      )
+      var link = document.createElement("a")
+      link.setAttribute("href", csvContent)
+      link.setAttribute("download", "time_per_ticket.csv")
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
