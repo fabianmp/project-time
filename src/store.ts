@@ -256,6 +256,9 @@ export const useProjectTimeStore = createGlobalState(async () => {
       workWeeks.value.splice(idx, 1, week)
     }
     updateBalances()
+    if (firstDay.getTime() === startOfWeek(today, WEEK_OPTIONS).getTime()) {
+      currentProject.value = weekTimestamps[weekTimestamps.length - 1].project
+    }
   }
 
   return {
