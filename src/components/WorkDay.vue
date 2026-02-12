@@ -12,7 +12,9 @@ const { addTimestamp } = await useProjectTimeStore()
 const workHoursPerDay = useLocalStorage("workHoursPerDay", 0)
 
 const colorMode = useColorMode()
-const gray = computed(() => colorMode.value === "dark" ? "bg-gray-700" : "bg-gray-200")
+const gray = computed(() =>
+  colorMode.value === "dark" ? "bg-gray-700" : "bg-gray-200",
+)
 
 const headerColor = computed(() => {
   let color = "bg-blue-500"

@@ -41,6 +41,7 @@ const ui = computed(() => ({
       />
       <OvertimeBalance
         :balance="week.balance"
+        v-if="workHoursPerDay > 0"
         color-positive="text-green-700"
       />
     </template>

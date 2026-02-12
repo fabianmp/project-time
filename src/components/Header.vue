@@ -108,7 +108,7 @@ const openModalExport = ref(false)
     <template #right>
       <OvertimeBalance
         :balance="overtime"
-        v-if="workHoursPerDay !== 0"
+        v-if="workHoursPerDay > 0"
       />
       <span class="w-5" />
       <UPopover

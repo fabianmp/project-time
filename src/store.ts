@@ -110,11 +110,11 @@ export const useProjectTimeStore = createGlobalState(async () => {
   function parseWorkday(day: Date, allTimestamps: Timestamp[]) {
     const timestamps = getTimestamps(allTimestamps, day, endOfDay(day))
     if (
-      (timestamps.length === 0 &&
-        startOfWeek(day, WEEK_OPTIONS).getTime() ===
-          startOfWeek(today, WEEK_OPTIONS).getTime()) ||
-      isWeekend(day) ||
-      workHoursPerDay.value === 0
+      timestamps.length === 0 &&
+      (startOfWeek(day, WEEK_OPTIONS).getTime() ===
+        startOfWeek(today, WEEK_OPTIONS).getTime() ||
+        isWeekend(day) ||
+        workHoursPerDay.value === 0)
     ) {
       return <Workday>{
         date: day,
