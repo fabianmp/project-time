@@ -2,7 +2,6 @@
 import { useProjectTimeStore } from "../store"
 import { Workday } from "../model"
 import { eachMonthOfInterval, endOfMonth, lightFormat } from "date-fns"
-import { Chart, Legend, plugins } from "chart.js"
 
 const { workWeeks } = await useProjectTimeStore()
 
@@ -28,18 +27,61 @@ const daysOfMonth = computed(() =>
     .reverse(),
 )
 
-const colors = [
-  "#3FA7D6CC",
-  "#F25C54CC",
-  "#70C1B3CC",
-  "#FFE066CC",
-  "#247BA0CC",
-  "#FF9F1CCC",
-  "#9B5DE5CC",
-  "#00BBF9CC",
-  "#F15BB5CC",
-  "#00F5D4CC",
+const allColors = [
+  "#85b7ce",
+  "#d84360",
+  "#ffe5cc",
+  "#9c8f24",
+  "#a163aa",
+  "#ede9e5",
+  "#2854a6",
+  "#993069",
+  "#73a2c6",
+  "#b4a650",
+  "#cbbce3",
+  "#a89a3b",
+  "#dcd2e6",
+  "#f5f2cb",
+  "#ae1045",
+  "#ffcab9",
+  "#507bb7",
+  "#eae5b6",
+  "#f4777f",
+  "#e75d6f",
+  "#3e67ae",
+  "#b190d1",
+  "#cdf1e0",
+  "#bda6dc",
+  "#e0d8a1",
+  "#fd9291",
+  "#00429d",
+  "#d5cb8d",
+  "#c52a52",
+  "#9acbd5",
+  "#ffaea5",
+  "#cabf78",
+  "#cca6dc",
+  "#b1dfdb",
+  "#bfb264",
+  "#d84360",
+  "#bda6dc",
+  "#618fbf",
+  "#93003a",
 ]
+
+const projectColors = computed(() => {
+  const names = new Set(
+    days.value.reduce((p: string[], d) => {
+      p.push(...d.projectTimes.map((pt) => pt.project))
+      return p
+    }, []),
+  )
+  const uniqueNames = [...names].filter((n) => n !== "Out-of-Office")
+  const colors = new Map<string, string>()
+  colors.set("Out-of-Office", "#505050")
+  uniqueNames.forEach((name, i) => colors.set(name, allColors[i]))
+  return colors
+})
 
 const projects = computed(() => {
   const names = new Set(
@@ -49,9 +91,9 @@ const projects = computed(() => {
     }, []),
   )
   const uniqueNames = [...names].sort()
-  return uniqueNames.map((name, i) => ({
+  return uniqueNames.map((name) => ({
     name: name,
-    color: colors[i],
+    color: projectColors.value.get(name),
   }))
 })
 
