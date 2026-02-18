@@ -69,12 +69,12 @@ export function createWorkday(timestamps: Timestamp[]) {
         duration: timestamp.duration,
         description: timestamp.description?.trim(),
         tickets:
-          parseTickets.value && ticket
+          parseTickets.value && ticket?.groups?.ticket && ticket?.groups?.description
             ? [
                 <TicketTime>{
                   duration: timestamp.duration,
-                  ticket: ticket?.groups?.ticket ?? "",
-                  description: ticket?.groups?.description.trim() ?? timestamp.description,
+                  ticket: ticket.groups.ticket,
+                  description: ticket.groups.description.trim(),
                 },
               ]
             : [],
@@ -86,22 +86,22 @@ export function createWorkday(timestamps: Timestamp[]) {
           projectTime.description,
           timestamp.description?.trim(),
         ].join(", ")
-        if (parseTickets.value && ticket) {
+        if (parseTickets.value &&  ticket?.groups?.ticket && ticket?.groups?.description) {
           const existingTicket = projectTime.tickets.find(
-            (t) => t.ticket === ticket.groups?.ticket,
+            (t) => t.ticket === ticket.groups.ticket,
           )
           if (existingTicket) {
             existingTicket.duration += timestamp.duration ?? 0
             existingTicket.description = [
               existingTicket.description,
-              ticket.groups!.description.trim(),
+              ticket.groups.description.trim(),
             ].join(", ")
           } else {
             projectTime.tickets.push(<TicketTime>{
               project: timestamp.project,
               duration: timestamp.duration,
-              ticket: ticket.groups!.ticket,
-              description: ticket.groups!.description.trim(),
+              ticket: ticket.groups.ticket,
+              description: ticket.groups.description.trim(),
             })
           }
         }
