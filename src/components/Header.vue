@@ -227,6 +227,7 @@ const openModalExport = ref(false)
               <UButton
                 icon="fa7-solid:trash"
                 color="error"
+                variant="subtle"
                 label="Delete old data..."
                 class="mx-2"
               />
