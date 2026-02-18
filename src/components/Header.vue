@@ -10,6 +10,11 @@ const toast = useToast()
 const workHoursPerDay = useLocalStorage("workHoursPerDay", 0)
 const overtimeBaseline = useLocalStorage("overtimeBaseline", 0)
 const rounded = useLocalStorage("rounded", false)
+const parseTickets = useLocalStorage("parseTicketNumbers", false)
+const parseTicketPattern = useLocalStorage(
+  "parseTicketNumbersPattern",
+  "^(?<ticket>\\w+-[\\d\\w]+):?\\s+(?<description>.+)",
+)
 const showRecommendedTimestamps = useLocalStorage(
   "showRecommendedTimestamps",
   false,
@@ -137,6 +142,51 @@ const openModalExport = ref(false)
               color="success"
               class="px-5 py-2"
             />
+            <USwitch
+              v-model="parseTickets"
+              label="Parse ticket numbers"
+              color="success"
+              class="px-5 py-2"
+            />
+            <div
+              v-if="parseTickets"
+              class="flex items-center gap-2 justify-end px-5"
+            >
+              <UModal
+                title="Set ticket pattern"
+                :dismissible="false"
+                :close="false"
+                :ui="{
+                  content: 'w-100',
+                  footer: 'justify-end',
+                  body: 'flex justify-between items-center gap-2',
+                }"
+              >
+                <UButton
+                  icon="fa7-solid:file-prescription"
+                  color="neutral"
+                  variant="subtle"
+                  label="Set pattern..."
+                  class="mx-2"
+                />
+                <template #body>
+                  <UIcon name="fa7-solid:file-prescription" />
+                  <UInput
+                    v-model:model-value="parseTicketPattern"
+                    placeholder=".*"
+                    class="grow"
+                  />
+                </template>
+                <template #footer="{ close }">
+                  <UButton
+                    label="Save"
+                    color="primary"
+                    class="cursor-pointer"
+                    @click="close"
+                  />
+                </template>
+              </UModal>
+            </div>
             <USeparator />
             <div
               class="flex items-center gap-2 justify-between px-5"

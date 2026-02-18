@@ -26,7 +26,7 @@ const messages: Toast[] = [
     title: "Import and export of data",
     description: h("span", {}, [
       "Please use this tool:",
-      h('br'),
+      h("br"),
       h(
         "a",
         {
@@ -36,6 +36,12 @@ const messages: Toast[] = [
         ["https://fabianmp.github.io/idb-import-export/"],
       ),
     ]),
+  },
+  <Toast>{
+    id: "3",
+    icon: "fa7-solid:bullhorn",
+    duration: 10000,
+    title: "You can now automatically parse ticket numbers in descriptions",
   },
 ]
 const newMessages = messages.filter((x) => !dismissed.value.includes(x.id))

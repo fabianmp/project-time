@@ -2,6 +2,7 @@ import { intervalToDuration, startOfDay } from "date-fns"
 import {
   ProjectTime,
   SystemProjects,
+  TicketTime,
   Timestamp,
   Workday,
   WorkSegment,
@@ -9,6 +10,8 @@ import {
 import { useLocalStorage } from "@vueuse/core"
 
 const rounded = useLocalStorage("rounded", false)
+const parseTickets = useLocalStorage("parseTicketNumbers", false)
+const parseTicketPattern = useLocalStorage("parseTicketNumbersPattern", "")
 const workHoursPerDay = useLocalStorage("workHoursPerDay", 0)
 
 export function roundDate(date: Date) {
@@ -52,9 +55,11 @@ export function createWorkday(timestamps: Timestamp[]) {
     }
   }
 
+  const ticketPattern = new RegExp(parseTicketPattern.value)
   const workSegments: WorkSegment[] = []
   let projectTimes: ProjectTime[] = []
   for (const [i, timestamp] of timestamps.entries()) {
+    const ticket = timestamp.description?.match(ticketPattern)
     const projectTime = projectTimes.find(
       (p) => p.project === timestamp.project,
     )
@@ -63,6 +68,16 @@ export function createWorkday(timestamps: Timestamp[]) {
         project: timestamp.project,
         duration: timestamp.duration,
         description: timestamp.description?.trim(),
+        tickets:
+          parseTickets.value && ticket
+            ? [
+                <TicketTime>{
+                  duration: timestamp.duration,
+                  ticket: ticket?.groups?.ticket ?? "",
+                  description: ticket?.groups?.description.trim() ?? timestamp.description,
+                },
+              ]
+            : [],
       })
     } else {
       projectTime.duration += timestamp.duration ?? 0
@@ -71,6 +86,25 @@ export function createWorkday(timestamps: Timestamp[]) {
           projectTime.description,
           timestamp.description?.trim(),
         ].join(", ")
+        if (parseTickets.value && ticket) {
+          const existingTicket = projectTime.tickets.find(
+            (t) => t.ticket === ticket.groups?.ticket,
+          )
+          if (existingTicket) {
+            existingTicket.duration += timestamp.duration ?? 0
+            existingTicket.description = [
+              existingTicket.description,
+              ticket.groups!.description.trim(),
+            ].join(", ")
+          } else {
+            projectTime.tickets.push(<TicketTime>{
+              project: timestamp.project,
+              duration: timestamp.duration,
+              ticket: ticket.groups!.ticket,
+              description: ticket.groups!.description.trim(),
+            })
+          }
+        }
       }
     }
     if (workSegments.length === 0) {

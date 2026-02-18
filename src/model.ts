@@ -15,10 +15,17 @@ export interface WorkSegment {
   icon: string
 }
 
+export interface TicketTime {
+  duration: number
+  ticket: string
+  description: string
+}
+
 export interface ProjectTime {
   duration: number
   project: string
   description: string
+  tickets: TicketTime[]
 }
 
 export interface Workday {
