@@ -76,7 +76,7 @@ const columnsTickets: TableColumn<TicketTime>[] = [
       const ticket = row.getValue("ticket")
       return ticket
         ? h(CopyableValue, {
-            icon: "fa7-solid:ticket",
+            icon: "fa7-solid:check-square",
             label: ticket,
           })
         : undefined
