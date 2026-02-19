@@ -296,7 +296,7 @@ const openModalExport = ref(false)
                   label="Cancel"
                   variant="outline"
                   color="neutral"
-                  @click="openModal = false"
+                  @click="openModalDelete = false"
                 />
                 <UButton
                   label="Delete"
