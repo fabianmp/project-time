@@ -31,7 +31,6 @@ export const useProjectTimeStore = createGlobalState(async () => {
     },
   })
 
-  const today = endOfDay(new Date())
   const currentProject = ref<string>("None")
   const totalBalance = ref(0)
   const workWeeks = ref<WorkWeek[]>([])
@@ -112,7 +111,7 @@ export const useProjectTimeStore = createGlobalState(async () => {
     if (
       timestamps.length === 0 &&
       (startOfWeek(day, WEEK_OPTIONS).getTime() ===
-        startOfWeek(today, WEEK_OPTIONS).getTime() ||
+        startOfWeek(new Date(), WEEK_OPTIONS).getTime() ||
         isWeekend(day) ||
         workHoursPerDay.value === 0)
     ) {
@@ -141,6 +140,7 @@ export const useProjectTimeStore = createGlobalState(async () => {
   function loadWeek(date: Date, allTimestamps: Timestamp[]) {
     const start = startOfWeek(date, WEEK_OPTIONS)
     let end = endOfWeek(date, WEEK_OPTIONS)
+    const today = endOfDay(new Date())
     let lastDay = end > today ? today : end
     const weekDays = eachDayOfInterval({
       start: start,
@@ -195,6 +195,7 @@ export const useProjectTimeStore = createGlobalState(async () => {
     })
 
     currentProject.value = allTimestamps[allTimestamps.length - 1].project
+    const today = endOfDay(new Date())
 
     const weeks = eachWeekOfInterval(
       { start: allTimestamps[0].timestamp, end: today },
@@ -258,7 +259,7 @@ export const useProjectTimeStore = createGlobalState(async () => {
       workWeeks.value.splice(0, 0, week)
     }
     updateBalances()
-    if (firstDay.getTime() === startOfWeek(today, WEEK_OPTIONS).getTime()) {
+    if (firstDay.getTime() === startOfWeek(new Date(), WEEK_OPTIONS).getTime()) {
       currentProject.value = weekTimestamps[weekTimestamps.length - 1].project
     }
   }
