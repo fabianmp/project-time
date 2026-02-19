@@ -2,7 +2,7 @@
 import { NavigationMenuItem } from "@nuxt/ui"
 import { useLocalStorage } from "@vueuse/core"
 import { useProjectTimeStore } from "../store"
-import { round } from "../helpers"
+import { DEFAULT_TICKET_PATTERN, round } from "../helpers"
 import { parse } from "date-fns"
 
 const toast = useToast()
@@ -13,7 +13,7 @@ const rounded = useLocalStorage("rounded", false)
 const parseTickets = useLocalStorage("parseTicketNumbers", false)
 const parseTicketPattern = useLocalStorage(
   "parseTicketNumbersPattern",
-  "^(?<ticket>\\w+-[\\d\\w]+):?\\s+(?<description>.+)",
+  DEFAULT_TICKET_PATTERN,
 )
 const showRecommendedTimestamps = useLocalStorage(
   "showRecommendedTimestamps",

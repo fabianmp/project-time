@@ -9,9 +9,15 @@ import {
 } from "./model"
 import { useLocalStorage } from "@vueuse/core"
 
+export const DEFAULT_TICKET_PATTERN =
+  "^(?<ticket>\\w+-[\\d\\w]+):?\\s+(?<description>.+)"
+
 const rounded = useLocalStorage("rounded", false)
 const parseTickets = useLocalStorage("parseTicketNumbers", false)
-const parseTicketPattern = useLocalStorage("parseTicketNumbersPattern", "")
+const parseTicketPattern = useLocalStorage(
+  "parseTicketNumbersPattern",
+  DEFAULT_TICKET_PATTERN,
+)
 const workHoursPerDay = useLocalStorage("workHoursPerDay", 0)
 
 export function roundDate(date: Date) {
@@ -69,7 +75,9 @@ export function createWorkday(timestamps: Timestamp[]) {
         duration: timestamp.duration,
         description: timestamp.description?.trim(),
         tickets:
-          parseTickets.value && ticket?.groups?.ticket && ticket?.groups?.description
+          parseTickets.value &&
+          ticket?.groups?.ticket &&
+          ticket?.groups?.description
             ? [
                 <TicketTime>{
                   duration: timestamp.duration,
@@ -86,7 +94,11 @@ export function createWorkday(timestamps: Timestamp[]) {
           projectTime.description,
           timestamp.description?.trim(),
         ].join(", ")
-        if (parseTickets.value &&  ticket?.groups?.ticket && ticket?.groups?.description) {
+        if (
+          parseTickets.value &&
+          ticket?.groups?.ticket &&
+          ticket?.groups?.description
+        ) {
           const existingTicket = projectTime.tickets.find(
             (t) => t.ticket === ticket.groups.ticket,
           )
