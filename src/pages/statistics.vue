@@ -5,19 +5,24 @@ import { eachMonthOfInterval, endOfMonth, lightFormat } from "date-fns"
 
 const { workWeeks } = await useProjectTimeStore()
 
-const days = ref<Workday[]>([])
-for (const week of workWeeks.value) {
-  days.value.push(...week.days)
-}
-
-const months = eachMonthOfInterval({
-  start: days.value[0].date,
-  end: days.value[days.value.length - 1].date,
+const days = computed<Workday[]>(() => {
+  const d = []
+  for (const week of workWeeks.value) {
+    d.push(...week.days)
+  }
+  return d
 })
+
+const months = computed(() =>
+  eachMonthOfInterval({
+    start: days.value[0].date,
+    end: days.value[days.value.length - 1].date,
+  }),
+)
 
 const page = ref(1)
 
-const currentMonth = computed(() => months[page.value - 1])
+const currentMonth = computed(() => months.value[page.value - 1])
 const daysOfMonth = computed(() =>
   days.value
     .filter(
@@ -100,7 +105,7 @@ const projects = computed(() => {
 const hoursData = computed(() => {
   const projectHoursPerDay = projects.value.map((p) => ({
     label: p.name,
-    data: [],
+    data: <number[]>[],
     backgroundColor: p.color,
   }))
   const labels = []
