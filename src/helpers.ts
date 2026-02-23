@@ -110,7 +110,6 @@ export function createWorkday(timestamps: Timestamp[]) {
             ].join(", ")
           } else {
             projectTime.tickets.push(<TicketTime>{
-              project: timestamp.project,
               duration: timestamp.duration,
               ticket: ticket.groups.ticket,
               description: ticket.groups.description.trim(),
