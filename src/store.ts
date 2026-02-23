@@ -16,6 +16,7 @@ import { createWorkday, round, roundDate } from "./helpers"
 
 const WEEK_OPTIONS = <WeekOptions>{ weekStartsOn: 1 }
 const workHoursPerDay = useLocalStorage("workHoursPerDay", 0)
+const showWholeCurrentWeek = useLocalStorage("showWholeCurrentWeek", false)
 
 interface ProjectTimeSchema extends DBSchema {
   data: {
@@ -139,9 +140,9 @@ export const useProjectTimeStore = createGlobalState(async () => {
 
   function loadWeek(date: Date, allTimestamps: Timestamp[]) {
     const start = startOfWeek(date, WEEK_OPTIONS)
-    let end = endOfWeek(date, WEEK_OPTIONS)
+    const end = endOfWeek(date, WEEK_OPTIONS)
     const today = endOfDay(new Date())
-    let lastDay = end > today ? today : end
+    const lastDay = !showWholeCurrentWeek.value && end > today ? today : end
     const weekDays = eachDayOfInterval({
       start: start,
       end: lastDay,
@@ -259,7 +260,9 @@ export const useProjectTimeStore = createGlobalState(async () => {
       workWeeks.value.splice(0, 0, week)
     }
     updateBalances()
-    if (firstDay.getTime() === startOfWeek(new Date(), WEEK_OPTIONS).getTime()) {
+    if (
+      firstDay.getTime() === startOfWeek(new Date(), WEEK_OPTIONS).getTime()
+    ) {
       currentProject.value = weekTimestamps[weekTimestamps.length - 1].project
     }
   }
