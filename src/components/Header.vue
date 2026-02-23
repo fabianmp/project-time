@@ -30,20 +30,31 @@ const { totalBalance, deleteOldData, loadTimestamps, getTimestampsFromDb } =
 watch(rounded, async () => await loadTimestamps())
 watch(workHoursPerDay, async () => await loadTimestamps())
 
-const items = ref<NavigationMenuItem[]>([
-  {
-    label: "Track Time",
-    icon: "fa7-solid:stopwatch",
-    to: "/",
-    class: "px-5",
-  },
-  {
-    label: "Statistics",
-    icon: "fa7-solid:chart-line",
-    to: "/statistics/",
-    class: "px-5",
-  },
-])
+const items = computed<NavigationMenuItem[]>(() => {
+  const menuItems = [
+    {
+      label: "Track Time",
+      icon: "fa7-solid:stopwatch",
+      to: "/",
+      class: "px-5",
+    },
+    {
+      label: "Statistics",
+      icon: "fa7-solid:chart-line",
+      to: "/statistics/",
+      class: "px-5",
+    },
+  ]
+  if (parseTickets.value) {
+    menuItems.push({
+      label: "Tickets",
+      icon: "fa7-solid:tasks",
+      to: "/tickets/",
+      class: "px-5",
+    })
+  }
+  return menuItems
+})
 const overtime = computed(() =>
   round(totalBalance.value + parseFloat(`${overtimeBaseline.value}`)),
 )

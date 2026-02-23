@@ -16,6 +16,10 @@ app.use(
         path: "/statistics/",
         component: () => import("./pages/statistics.vue"),
       },
+      {
+        path: "/tickets/",
+        component: () => import("./pages/tickets.vue"),
+      },
     ],
     history: createWebHashHistory(),
   }),
