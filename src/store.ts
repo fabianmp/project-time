@@ -195,13 +195,19 @@ export const useProjectTimeStore = createGlobalState(async () => {
       t.timestamp = roundDate(t.timestamp)
     })
 
-    currentProject.value = allTimestamps[allTimestamps.length - 1].project
+    let weeks: Date[] = []
     const today = endOfDay(new Date())
+    if (allTimestamps.length > 0) {
+      currentProject.value = allTimestamps[allTimestamps.length - 1].project
 
-    const weeks = eachWeekOfInterval(
-      { start: allTimestamps[0].timestamp, end: today },
-      WEEK_OPTIONS,
-    )
+      weeks = eachWeekOfInterval(
+        { start: allTimestamps[0].timestamp, end: today },
+        WEEK_OPTIONS,
+      )
+    } else {
+      currentProject.value = "None"
+      weeks = [startOfWeek(today, WEEK_OPTIONS)]
+    }
 
     workWeeks.value = weeks.map((w) => loadWeek(w, allTimestamps)).reverse()
     updateBalances()
