@@ -1,3 +1,14 @@
+<script lang="ts">
+import { ref } from "vue"
+type DayClipboardEntry = {
+  timestamp: Date
+  project: string
+  description?: string
+}
+
+const dayClipboard = ref<DayClipboardEntry[] | null>(null)
+</script>
+
 <script setup lang="ts">
 import { Workday } from "../model"
 import { useProjectTimeStore } from "../store"
@@ -9,6 +20,7 @@ const { day } = defineProps<{
 }>()
 
 const { addTimestamp } = await useProjectTimeStore()
+const showCopyPasteButtons = useLocalStorage("showCopyPasteButtons", false)
 const workHoursPerDay = useLocalStorage("workHoursPerDay", 0)
 
 const colorMode = useColorMode()
@@ -63,6 +75,28 @@ function formatDate(date: Date) {
     day: "2-digit",
   })
 }
+
+function copyDay(day: Workday) {
+  dayClipboard.value = day.timestamps.map((timestamp) => ({ ...timestamp }))
+}
+
+async function pasteDay(day: Workday) {
+  if (!dayClipboard.value) return
+  for (const ts of dayClipboard.value) {
+    const newTimestamp = new Date(day.date)
+    newTimestamp.setHours(
+      ts.timestamp.getHours(),
+      ts.timestamp.getMinutes(),
+      ts.timestamp.getSeconds(),
+      ts.timestamp.getMilliseconds(),
+    )
+    try {
+      await addTimestamp(newTimestamp, ts.project, ts.description)
+    } catch (error) {
+      console.error("Error adding timestamp:", error)
+    }
+  }
+}
 </script>
 
 <template>
@@ -93,13 +127,33 @@ function formatDate(date: Date) {
           color-negative="text-red-600"
         />
       </div>
-      <UButton
-        icon="fa7-solid:plus"
-        label="Add new"
-        variant="subtle"
-        color="neutral"
-        @click="addRow(day)"
-      />
+      <div class="flex flex-row items-center gap-1">
+        <UButton
+          icon="fa7-solid:plus"
+          label="Add new"
+          variant="subtle"
+          color="neutral"
+          @click="addRow(day)"
+        />
+        <UButton
+          icon="fa7-solid:copy"
+          label="Copy"
+          variant="subtle"
+          color="neutral"
+          :disabled="day.timestamps.length === 0"
+          @click="copyDay(day)"
+          v-if="showCopyPasteButtons"
+        />
+        <UButton
+          icon="fa7-solid:paste"
+          label="Paste"
+          variant="subtle"
+          color="neutral"
+          :disabled="!dayClipboard"
+          @click="pasteDay(day)"
+          v-if="showCopyPasteButtons"
+        />
+      </div>
     </template>
     <template #footer>
       <div class="flex gap-5 px-2 items-center w-full">

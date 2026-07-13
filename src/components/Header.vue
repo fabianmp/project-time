@@ -23,6 +23,7 @@ const showWholeCurrentWeek = useLocalStorage(
   "showWholeCurrentWeek",
   false,
 )
+const showCopyPasteButtons = useLocalStorage("showCopyPasteButtons", false)
 
 const { totalBalance, deleteOldData, loadTimestamps, getTimestampsFromDb } =
   await useProjectTimeStore()
@@ -160,6 +161,12 @@ const openModalExport = ref(false)
             <USwitch
               v-model="showWholeCurrentWeek"
               label="Show whole current week"
+              color="success"
+              class="px-5 py-2"
+            />
+            <USwitch
+              v-model="showCopyPasteButtons"
+              label="Show copy/paste buttons"
               color="success"
               class="px-5 py-2"
             />
